@@ -15,39 +15,25 @@ st.set_page_config(
     layout="centered"
 )
 
-# === HIDE STREAMLIT BRANDING - SAFE VERSION ===
+# --- GOLD LOGO FOR IPHONE HOME SCREEN ---
 st.markdown("""
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/koomsonc988-spec/tc-petroscan-box/main/logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/koomsonc988-spec/tc-petroscan-box/main/logo.png">
 <style>
-    #MainMenu {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
-    .stDeployButton {display: none !important;}
-    div[data-testid="stToolbar"] {display: none !important;}
-    div[data-testid="stDecoration"] {display: none !important;}
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-# LOGO
-if os.path.exists("logo.png"):
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        st.image("logo.png", use_container_width=True)
+st.title("💎 TC PETROSCAN BOX")
+st.write("AI Rock Classification for Geologists")
 
-st.markdown("<h2 style='text-align:center;color:#FFD700;'>TC PETROSCAN BOX</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Geologist AI Brain | Phone Camera Mode</p>", unsafe_allow_html=True)
-st.markdown("---")
+uploaded = st.file_uploader("Scan Rock", type=["jpg","png","jpeg"])
+if uploaded:
+    img = Image.open(uploaded)
+    st.image(img, caption="Scanned Rock")
+    result = classify(img)
+    st.success(f"Result: {result}")
 
-# CAMERA
-camera_file = st.camera_input("Take a photo of a rock")
-
-if camera_file is not None:
-    image = Image.open(camera_file)
-    st.image(image, caption="Captured", use_container_width=True)
-    with st.spinner("Analyzing..."):
-        try:
-            result = classify(image)
-            st.success(f"Result: {result}")
-        except Exception as e:
-            st.error(f"Error: {e}")
-            st.info("Check rock_classifier.py")
+st.caption("Powered by TC Minerals - Ghana")
