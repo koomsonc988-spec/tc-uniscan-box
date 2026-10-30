@@ -30,10 +30,16 @@ st.title("💎 TC PETROSCAN BOX")
 st.write("AI Rock Classification for Geologists")
 
 uploaded = st.file_uploader("Scan Rock", type=["jpg","png","jpeg"])
+
 if uploaded:
     img = Image.open(uploaded)
     st.image(img, caption="Scanned Rock")
-    result = classify(img)
+    # FIX: Classifier needs file bytes, not PIL image
+    try:
+        uploaded.seek(0)
+        result = classify(uploaded)
+    except:
+        # If classifier wants PIL, try PIL
+        result = classify(img)
     st.success(f"Result: {result}")
-
 st.caption("Powered by TC Minerals - Ghana")
