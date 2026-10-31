@@ -11,18 +11,18 @@ uploaded = st.file_uploader("📸 Upload ANYTHING", type=["jpg","png","jpeg"])
 
 if uploaded and API_KEY:
     img = Image.open(uploaded)
+    img.thumbnail((512, 512))
     st.image(img, width=500)
     try:
         client = genai.Client(api_key=API_KEY)
-        with st.spinner("🧠 Scanning..."):
+        with st.spinner("🧠 Scanning... 2 sec"):
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=["Identify this: If rock give name, type, composition, origin, value. If anything else (animal, plant, food, car, person, object) identify fully with details, facts, origin. Be expert professor.", img]
+                model="gemini-2.5-flash-lite",
+                contents=["Identify this fast: name, type, facts in short bullet points.", img]
             )
         st.success("✅ IDENTIFIED!")
         st.markdown(response.text)
     except Exception as e:
         st.error(f"Error: {e}")
-        st.info("If error says 'not found', wait 5 mins - new API keys need time to activate. Or create new key at aistudio.google.com/app/apikey")
 elif uploaded:
-    st.warning("Paste API key first - get free at aistudio.google.com/app/apikey")
+    st.warning("Paste API key first")
