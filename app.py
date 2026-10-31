@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 from google import genai
 
-st.set_page_config(page_title=","TC UniScan Box - AI Universe Scanner by Tandoh Caleb - Powered by TC AI Ghana" page_icon="🌌")
+st.set_page_config(page_title=","TC UniScan Box," page_icon="TC,")
 st.image("logo.png", width=200)
 st.markdown("<h1 style='text-align:center;'>TC UniScan Box</h1><h3 style='text-align:center; color:#FFD700;'>AI Universe Scanner by Tandoh Caleb</h3><p style='text-align:center;'>Powered by TC AI Ghana</p><hr>", unsafe_allow_html=True)
 
