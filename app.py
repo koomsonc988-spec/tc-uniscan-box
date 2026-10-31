@@ -12,7 +12,7 @@ uploaded = st.file_uploader("📸 Take/Upload picture of ANYTHING - Rock, Animal
 
 if uploaded and API_KEY:
     genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.0-flash")
     img = Image.open(uploaded)
     st.image(img, width=500)
 
