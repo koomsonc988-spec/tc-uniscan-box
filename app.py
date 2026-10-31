@@ -9,21 +9,31 @@ except Exception as e:
         return f"Classifier Error: {e}"
 
 st.set_page_config(
-    page_title="TC PETROSCAN BOX",
+    page_title="TC PETROSCAN BOX - Official",
     page_icon="💎",
-    layout="centered"
+    layout="centered",
+    menu_items={
+        'About': "© TC Minerals Ghana - Professional Geological AI"
+    }
 )
 
-st.markdown("""
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/koomsonc988-spec/tc-petroscan-box/main/logo.png">
-<style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
+# --- REMOVE STREAMLIT BRANDING ---
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .stDeployButton {display:none;}
+            [data-testid="stToolbar"] {visibility: hidden !important;}
+            [data-testid="stDecoration"] {visibility: hidden !important;}
+            [data-testid="stStatusWidget"] {visibility: hidden !important;}
+            .viewerBadge_container__1QSob {display: none !important;}
+            .styles_viewerBadge__1yB5_ {display: none !important;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-st.title("TC PETROSCAN BOX")
+st.title("💎 TC PETROSCAN BOX")
 st.write("AI Rock Classification for Geologists")
 
 uploaded = st.file_uploader("Scan Rock", type=["jpg","png","jpeg"])
@@ -31,15 +41,11 @@ uploaded = st.file_uploader("Scan Rock", type=["jpg","png","jpeg"])
 if uploaded:
     img = Image.open(uploaded)
     st.image(img, caption="Scanned Rock")
-    
-    # FIX FOR YOUR ERROR
     uploaded.seek(0)
     try:
         result = classify(uploaded)
-    except AttributeError:
-        # If it fails, try with PIL image
+    except:
         result = classify(img)
-    
     st.success(f"Result: {result}")
 
 st.caption("Powered by TC Minerals - Ghana")
