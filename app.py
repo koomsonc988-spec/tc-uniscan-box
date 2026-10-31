@@ -26,4 +26,8 @@ if uploaded:
             st.success("✅ Scan Complete!")
             st.markdown(response.text)
         except Exception as e:
-            st.error(f"Error: {e}")
+            except Exception as e:
+    if "503" in str(e):
+        st.warning("🚀 Universe is busy! So many TC users scanning! Wait 15 seconds and tap Scan again - it works on 2nd try!")
+    else:
+        st.error(f"Error: {e}")
