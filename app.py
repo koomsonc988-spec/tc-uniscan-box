@@ -16,7 +16,7 @@ if uploaded and API_KEY:
         client = genai.Client(api_key=API_KEY)
         with st.spinner("🧠 Scanning..."):
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=["Identify this: If rock give name, type, composition, origin, value. If anything else (animal, plant, food, car, person, object) identify fully with details, facts, origin. Be expert professor.", img]
             )
         st.success("✅ IDENTIFIED!")
