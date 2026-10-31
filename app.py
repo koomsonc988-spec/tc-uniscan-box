@@ -1,41 +1,34 @@
 import streamlit as st
 from PIL import Image
+import base64
 
-st.set_page_config(
-    page_title="TC PETROSCAN BOX",
-    page_icon="💎",
-    layout="centered"
-)
+st.set_page_config(page_title="TC PETROSCAN BOX Official", page_icon="💎", layout="centered")
 
-# HIDE ALL STREAMLIT BADGES
+# HIDE STREAMLIT INSIDE APP
 st.markdown("""
 <style>
-#MainMenu, footer, header {display: none !important;}
-.viewerBadge_container__1QSob {display: none !important;}
-a[href*="streamlit"] {display: none !important;}
+#MainMenu, footer, header, .viewerBadge_container__1QSob {display:none !important;}
 </style>
 """, unsafe_allow_html=True)
 
-# SHOW LOGO - SAFE WAY
+# SHOW LOGO - GUARANTEED
 try:
-    st.image("logo.png", width=250)
+    # Try to load your uploaded logo
+    st.image("logo.png", width=280)
 except:
-    try:
-        st.image("logo.PNG", width=250)
-    except:
-        st.markdown("<h1 style='text-align:center; color:gold;'>TC</h1>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align:center; background:black; padding:20px; border:2px solid #D4AF37; border-radius:15px;'>
+    <h1 style='color:#D4AF37; font-size:60px; margin:0;'>TC</h1>
+    <p style='color:gold;'>💎 TC MINERALS 💎</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("<h2 style='text-align:center; color:#D4AF37;'>TC PetroScan Box</h2>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Tandoh Caleb - UMaT</p>", unsafe_allow_html=True)
-
+st.markdown("<h2 style='text-align:center; color:#D4AF37;'>TC PetroScan Box</h2><p style='text-align:center;'>Tandoh Caleb - UMaT</p>", unsafe_allow_html=True)
 st.divider()
 
-file = st.file_uploader("📸 Scan Rock", type=["jpg","png","jpeg"])
+f = st.file_uploader("📸 Scan Rock", type=["jpg","png","jpeg"])
+if f:
+    st.image(Image.open(f), use_container_width=True)
+    st.success("✅ Rock Scanned!")
 
-if file:
-    img = Image.open(file)
-    st.image(img, use_container_width=True)
-    st.success("✅ Rock Scanned! Ready for AI Analysis")
-    st.balloons()
-
-st.markdown("<p style='text-align:center; font-size:12px; color:gray; margin-top:50px;'>© TC Minerals Ghana</p>", unsafe_allow_html=True)
+st.caption("© TC Minerals Ghana")
