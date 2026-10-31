@@ -17,7 +17,7 @@ if uploaded and API_KEY:
         client = genai.Client(api_key=API_KEY)
         with st.spinner("🧠 Scanning... 2 sec"):
             response = client.models.generate_content(
-                model="gemini-2.5-flash-lite",
+                model="gemini-3'8-flash-lite",
                 contents=["Identify this fast: name, type, facts in short bullet points.", img]
             )
         st.success("✅ IDENTIFIED!")
