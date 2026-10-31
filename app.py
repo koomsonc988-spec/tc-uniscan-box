@@ -20,7 +20,7 @@ if uploaded:
         try:
             client = genai.Client(api_key=API_KEY)
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3.8-flash",
                 contents=[prompt, img]
             )
             st.success("✅ Scan Complete!")
