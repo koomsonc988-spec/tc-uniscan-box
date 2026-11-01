@@ -67,7 +67,7 @@ if camera:
                     Be accurate like Meta AI."""
                     
                     response = client.models.generate_content(
-                        model="gemini-1.5-flash",
+                        model="gemini-2.0-flash-lite",
                         contents=[prompt, img]
                     )
                     st.markdown(f'<div class="gold-box">{response.text}</div>', unsafe_allow_html=True)
