@@ -1,63 +1,73 @@
 import streamlit as st
-from PIL import Image
-from google import genai
+from datetime import date, timedelta
+import pandas as pd
+import time
 
-st.set_page_config(page_title="TC UniScan Box", page_icon="icon.png", layout="centered")
+PAYSTACK_LINK = "https://paystack.shop/pay/qjkz4aszx8"
+DAILY_FREE_LIMIT = 20
 
-# Header with your custom icon
-col1, col2 = st.columns([1, 3])
-with col1:
-    try:
-        st.image("icon.png", width=100)
-    except:
-        st.markdown("# 🧊")
-with col2:
-    st.title("TC UniScan Box")
-    st.markdown("**By Tandoh Caleb | TC AI Ghana | UMaT**")
+st.set_page_config(page_title="TC UniScan Box", page_icon="📦", layout="centered")
 
-st.divider()
+# --- SESSION ---
+if 'scans_today' not in st.session_state:
+    st.session_state.scans_today = 0
+if 'last_date' not in st.session_state:
+    st.session_state.last_date = str(date.today())
+if 'is_premium' not in st.session_state:
+    st.session_state.is_premium = False
+if 'premium_until' not in st.session_state:
+    st.session_state.premium_until = None
+if 'items' not in st.session_state:
+    st.session_state.items = []
 
-# API Key - Supports both AQ... and AIzaSy...
-api_key = ""
-try:
-    api_key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY") or ""
-    api_key = str(api_key).strip().strip('"').strip("'").strip()
-except:
-    api_key = ""
+# Daily reset + check expiry
+if st.session_state.last_date != str(date.today()):
+    st.session_state.scans_today = 0
+    st.session_state.last_date = str(date.today())
+if st.session_state.premium_until and date.today() > st.session_state.premium_until:
+    st.session_state.is_premium = False
 
-if not api_key:
-    st.error("❌ API Key not found in Secrets! Add GEMINI_API_KEY")
+# --- PAYWALL ---
+def show_paywall():
+    st.markdown(f"""
+    <div style="background:#0f172a;color:white;padding:25px;border-radius:18px;text-align:center">
+    <h2>🚫 Free Limit Reached (20/20)</h2>
+    <h3>📦 TC UniScan Premium - GHS 50 / Month</h3>
+    <p>Unlimited scans for 30 days<br>Bank / MoMo / VISA Accepted</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.write("")
+    st.link_button("💳 Pay GHS 50 - Unlock 30 Days Premium", PAYSTACK_LINK, use_container_width=True, type="primary")
+    st.write("")
+    if st.button("✅ I Have Paid GHS 50 - Unlock Now", use_container_width=True):
+        st.session_state.is_premium = True
+        st.session_state.premium_until = date.today() + timedelta(days=30)
+        st.balloons()
+        st.success("Premium Unlocked for 30 Days! 🎉")
+        time.sleep(1)
+        st.rerun()
     st.stop()
 
-# Client that supports AQ keys
-try:
-    client = genai.Client(api_key=api_key)
-except Exception as e:
-    st.error(f"Config Error: {e}")
-    st.stop()
+if not st.session_state.is_premium and st.session_state.scans_today >= DAILY_FREE_LIMIT:
+    show_paywall()
 
-uploaded_file = st.file_uploader("Upload image to scan...", type=["jpg","jpeg","png","webp"])
+# --- APP ---
+c1, c2 = st.columns([3,1])
+with c1:
+    st.title("📦 TC UniScan Box")
+with c2:
+    if st.session_state.is_premium:
+        st.success(f"Premium until {st.session_state.premium_until}")
+    else:
+        st.metric("Free left", f"{DAILY_FREE_LIMIT - st.session_state.scans_today}")
 
-if uploaded_file:
-    image = Image.open(uploaded_file)
-    st.image(image, caption=uploaded_file.name, use_container_width=True)
-    
-    if st.button("🔴 SCAN UNIVERSE", use_container_width=True, type="primary"):
-        with st.spinner("🌀 Scanning through the Universe with TC Cube..."):
-            try:
-                prompt = """You are TC UniScan Box AI - a glowing TC cube scanner.
-                Analyze this image deeply. Identify device, give specs, features, network type, battery, usage guide.
-                Add Ghana context (UMaT, TC AI Ghana). Use emojis, clear sections, professional style."""
-                
-                response = client.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=[prompt, image]
-                )
-                st.success("✅ Universe Scan Complete!")
-                st.markdown(response.text)
-                st.balloons()
-            except Exception as e:
-                st.error(f"Error: {e}")
+cam = st.camera_input("📷 Scan Box")
+if cam:
+    st.session_state.items.append({"code": f"BOX-{int(time.time())%100000}", "time": time.strftime("%H:%M")})
+    st.session_state.scans_today += 1
+    st.rerun()
 
-st.divider()
-st.caption("🧊 TC UniScan Box | Powered by Gemini | Built by Tandoh Caleb")
+if st.session_state.items:
+    df = pd.DataFrame(st.session_state.items)
+    st.dataframe(df, use_container_width=True)
+    st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), "tc_uniscan.csv", use_container_width=True)
