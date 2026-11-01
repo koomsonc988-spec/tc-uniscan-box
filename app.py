@@ -1,121 +1,86 @@
 import streamlit as st
-import base64
 from PIL import Image
-import io
+import google.generativeai as genai
 
-st.set_page_config(page_title="TC UniScan Box", page_icon="💎", layout="centered")
+st.set_page_config(page_title="TC UniScan Box", layout="centered")
 
-# Your gold logo - base64 (embedded so no separate file needed)
-# If this is too long, just save your logo as logo.jpg in same folder and use st.image("logo.jpg")
-
-# CSS Gold Theme
+# GOLD THEME
 st.markdown("""
 <style>
-.header {background:#111;border-bottom:2px solid #D4AF37;padding:15px;text-align:center;border-radius:15px}
-.app-name {color:#D4AF37;font-size:28px;font-weight:800}
-.tagline {color:#aaa;font-size:13px}
-.gold-box {background:#0f0f0f;border:1px solid #D4AF37;border-radius:20px;padding:20px;margin:15px 0}
-.btn-gold {background:linear-gradient(135deg,#FFD700,#B8860B);color:#000;padding:12px 25px;border-radius:50px;font-weight:700;border:none}
+.stApp {background:#000;color:#fff;}
+.gold-box {background:#111;border:2px solid #D4AF37;border-radius:20px;padding:20px;margin:10px 0;white-space:pre-wrap}
+.header {text-align:center}
 </style>
 """, unsafe_allow_html=True)
 
-# Header with your real logo
+# YOUR REAL GOLD LOGO
 try:
-    logo = Image.open("logo.jpg")
-    st.image(logo, width=120)
+    st.image("logo.jpg", width=120)
 except:
-    # Fallback gold TC logo if logo.jpg not found
-    st.markdown('<div style="width:110px;height:110px;background:linear-gradient(135deg,#FFD700,#B8860B);border-radius:20px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:40px">TC</div>', unsafe_allow_html=True)
+    st.markdown('<div style="width:110px;height:110px;background:linear-gradient(135deg,#FFD700,#B8860B);border-radius:20px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:35px">TC</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="header"><div class="app-name">TC UniScan Box</div><div class="tagline">Smart AI Scanner - Like Meta AI - Identifies Everything</div></div>', unsafe_allow_html=True)
+st.markdown('<h2 style="color:#D4AF37;text-align:center">TC UniScan Box</h2><p style="text-align:center;color:#aaa">Smart Scanner Like Meta AI</p>', unsafe_allow_html=True)
 
-# Session state for scan count
 if 'scan_count' not in st.session_state:
     st.session_state.scan_count = 0
 if 'unlocked' not in st.session_state:
     st.session_state.unlocked = False
 
-FREE_LIMIT = 20
+# API KEY INSIDE APP - PASTE HERE
+st.markdown("### 🔑 Step 1: Paste Your FREE AI Key (one time)")
+st.write("Get FREE key from: https://aistudio.google.com/app/apikey")
+api_key_input = st.text_input("Paste your Gemini API Key here", type="password", placeholder="AIza...")
 
-left = FREE_LIMIT - st.session_state.scan_count
-if st.session_state.unlocked:
-    st.success("✨ PREMIUM UNLOCKED - Unlimited Scans")
+if api_key_input:
+    st.session_state.api_key = api_key_input
+
+api_key = st.session_state.get('api_key', '') or st.secrets.get("GEMINI_API_KEY", "")
+
+if not api_key:
+    st.warning("👆 Paste your API key above to make it smart like Meta AI")
+    st.stop()
 else:
-    st.info(f"FREE Scans: {st.session_state.scan_count}/{FREE_LIMIT} - {left} left")
+    st.success("✅ AI Key connected - Now super smart like Meta AI!")
 
-# Camera
-st.markdown("### 📸 Take Picture of Anything")
-camera = st.camera_input("Point at anything and scan")
+if st.session_state.unlocked:
+    st.success("PREMIUM UNLOCKED")
+else:
+    st.info(f"FREE: {st.session_state.scan_count}/20")
 
-# Premium check
-def check_premium():
-    if st.session_state.unlocked:
-        return True
-    if st.session_state.scan_count >= FREE_LIMIT:
-        st.error("Premium Required - 20 FREE scans used")
-        st.markdown("### Unlock Unlimited for GHS 50")
-        st.link_button("PAY GHS 50 NOW", "https://paystack.shop/pay/qjkz4aszx8")
-        code = st.text_input("Enter Owner Code after payment")
-        if st.button("UNLOCK APP"):
-            if code == "TC2024GOLD":
-                st.session_state.unlocked = True
-                st.success("Unlocked!")
-                st.rerun()
-            else:
-                st.error("Wrong code")
-        return False
-    return True
+camera = st.camera_input("📸 Step 2: Take picture of ANYTHING")
 
 if camera:
-    if check_premium():
-        st.image(camera, caption="Scanned Image", use_container_width=True)
-        
-        # Smart Analysis (works like Meta AI)
-        # For full Meta AI brain, add Gemini API key in Streamlit secrets
-        try:
-            # Try to use Gemini if API key exists
-            import google.generativeai as genai
-            api_key = st.secrets.get("GEMINI_API_KEY") or st.text_input("Enter FREE Gemini API Key from aistudio.google.com (one-time) for full Meta AI brain", type="password")
-            if api_key:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-1.5-flash")
-                img = Image.open(camera)
-                prompt = """You are Meta AI scanner. Identify this image completely. Return:
-                1. Name of item
-                2. What is this?
-                3. Everything about it (150+ words)
-                4. Uses & Facts
-                5. Origin & Details
-                6. Important Notes
-                Be detailed, accurate, comprehensive like Meta AI."""
-                response = model.generate_content([prompt, img])
-                result = response.text
-            else:
-                result = None
-        except:
-            result = None
-
-        if result:
-            st.markdown(f'<div class="gold-box"><h3 style="color:#D4AF37">✅ Identified</h3><p>{result}</p></div>', unsafe_allow_html=True)
+    img = Image.open(camera)
+    st.image(img, caption="Your image", use_container_width=True)
+    
+    if st.button("🔍 SCAN NOW - IDENTIFY LIKE META AI", type="primary"):
+        if st.session_state.scan_count >= 20 and not st.session_state.unlocked:
+            st.error("20 FREE used! Pay GHS 50")
+            st.link_button("PAY GHS 50 NOW", "https://paystack.shop/pay/qjkz4aszx8")
+            code = st.text_input("Enter Code")
+            if st.button("UNLOCK"):
+                if code == "TC2024GOLD":
+                    st.session_state.unlocked = True
+                    st.rerun()
         else:
-            # Fallback smart analysis without API
-            st.markdown("""
-            <div class="gold-box">
-            <h3 style="color:#D4AF37">✅ Scanned Item Detected</h3>
-            <h4 style="color:#FFD700">What is this?</h4>
-            <p>Image captured and analyzed. TC UniScan AI identified shape, color, texture. This appears to be a clear photo of an everyday object.</p>
-            <h4 style="color:#FFD700">Everything About It</h4>
-            <p>Identified using visual recognition similar to Meta AI. It analyzes colors, edges, textures, context. Whether food, plant, animal, product, document, any object - system explains what it is, how made, why exists, unique features. For full scientific name, brand, nutrition, price, history - add FREE Gemini API key (get from aistudio.google.com) in Streamlit secrets as GEMINI_API_KEY.</p>
-            <h4 style="color:#FFD700">Uses & Facts</h4>
-            <p>For learning, identification, shopping, education. Understand unknown objects instantly.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            with st.spinner("🧠 Meta AI is thinking... Identifying your image..."):
+                try:
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel("gemini-1.5-flash")
+                    prompt = """You are Meta AI scanner. Identify this image 100% accurately. 
+                    Give:
+                    1. NAME: exact name
+                    2. WHAT IS THIS: 2-3 sentences
+                    3. EVERYTHING ABOUT IT: 150+ words detailed with scientific name, facts, history
+                    4. USES & FACTS
+                    5. ORIGIN & PRICE if product
+                    Be accurate like Meta AI. No generic text."""
+                    response = model.generate_content([prompt, img])
+                    st.markdown(f'<div class="gold-box">{response.text}</div>', unsafe_allow_html=True)
+                    st.session_state.scan_count += 1
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                    st.info("Check your API key - make sure you copied correctly from aistudio.google.com")
 
-        if st.button("Confirm Scan - Count it"):
-            st.session_state.scan_count += 1
-            st.success(f"Scanned! Total: {st.session_state.scan_count}")
-            st.rerun()
-
-# Instructions
-st.markdown("---")
-st.markdown("**How to make it 100% smart like Meta AI:**\n1. Get free API key from aistudio.google.com\n2. In Streamlit Cloud > App Settings > Secrets add: `GEMINI_API_KEY = \"your_key\"`\n3. Redeploy")
+st.caption("TC UniScan Box | GHS 50 Premium")
