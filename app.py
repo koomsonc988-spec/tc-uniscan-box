@@ -50,7 +50,7 @@ if uploaded_file:
                 Add Ghana context (UMaT, TC AI Ghana). Use emojis, clear sections, professional style."""
                 
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash",
+                    model="gemini-2.0-flash",
                     contents=[prompt, image]
                 )
                 st.success("✅ Universe Scan Complete!")
