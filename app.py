@@ -17,17 +17,16 @@ if 'is_premium' not in st.session_state:
     st.session_state.is_premium = False
 if 'premium_until' not in st.session_state:
     st.session_state.premium_until = None
-if 'items' not in st.session_state:
-    st.session_state.items = []
+if 'box_data' not in st.session_state:  # FIXED - was 'items'
+    st.session_state.box_data = []
 
-# Daily reset + check expiry
+# Daily reset
 if st.session_state.last_date != str(date.today()):
     st.session_state.scans_today = 0
     st.session_state.last_date = str(date.today())
 if st.session_state.premium_until and date.today() > st.session_state.premium_until:
     st.session_state.is_premium = False
 
-# --- PAYWALL ---
 def show_paywall():
     st.markdown(f"""
     <div style="background:#0f172a;color:white;padding:25px;border-radius:18px;text-align:center">
@@ -37,14 +36,11 @@ def show_paywall():
     </div>
     """, unsafe_allow_html=True)
     st.write("")
-    st.link_button("💳 Pay GHS 50 - Unlock 30 Days Premium", PAYSTACK_LINK, use_container_width=True, type="primary")
-    st.write("")
+    st.link_button("💳 Pay GHS 50 - Unlock 30 Days", PAYSTACK_LINK, use_container_width=True, type="primary")
     if st.button("✅ I Have Paid GHS 50 - Unlock Now", use_container_width=True):
         st.session_state.is_premium = True
         st.session_state.premium_until = date.today() + timedelta(days=30)
         st.balloons()
-        st.success("Premium Unlocked for 30 Days! 🎉")
-        time.sleep(1)
         st.rerun()
     st.stop()
 
@@ -63,11 +59,16 @@ with c2:
 
 cam = st.camera_input("📷 Scan Box")
 if cam:
-    st.session_state.items.append({"code": f"BOX-{int(time.time())%100000}", "time": time.strftime("%H:%M")})
+    # FIXED LINE
+    st.session_state.box_data.append({"code": f"BOX-{int(time.time())%100000}", "time": time.strftime("%H:%M")})
     st.session_state.scans_today += 1
+    st.success("Scanned!")
     st.rerun()
 
-if st.session_state.items:
-    df = pd.DataFrame(st.session_state.items)
+if st.session_state.box_data:
+    df = pd.DataFrame(st.session_state.box_data)
     st.dataframe(df, use_container_width=True)
     st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), "tc_uniscan.csv", use_container_width=True)
+    if st.button("🗑️ Clear All"):
+        st.session_state.box_data = []
+        st.rerun()
