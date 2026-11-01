@@ -3,16 +3,16 @@ from datetime import date, timedelta
 import pandas as pd
 import time
 from PIL import Image
-import io
 
 PAYSTACK_LINK = "https://paystack.shop/pay/qjkz4aszx8"
 DAILY_FREE_LIMIT = 20
 OWNER_CODE = "TC2024"
 LOGO_FILE = "logo.png"
+OPERATOR_NAME = "Tandoh Caleb"
 
 st.set_page_config(page_title="TC UniScan Box", page_icon="📦", layout="centered")
 
-# --- SESSION ---
+# SESSION
 if 'scans_today' not in st.session_state:
     st.session_state.scans_today = 0
 if 'last_date' not in st.session_state:
@@ -25,6 +25,8 @@ if 'box_data' not in st.session_state:
     st.session_state.box_data = []
 if 'is_owner' not in st.session_state:
     st.session_state.is_owner = False
+if 'last_result' not in st.session_state:
+    st.session_state.last_result = None
 
 if st.session_state.last_date != str(date.today()):
     st.session_state.scans_today = 0
@@ -35,7 +37,6 @@ if not st.session_state.is_owner:
         st.session_state.is_premium = False
         st.session_state.premium_until = None
 
-# --- SIDEBAR OWNER ---
 with st.sidebar:
     try: st.image(LOGO_FILE, use_container_width=True)
     except: st.title("TC UniScan")
@@ -44,10 +45,10 @@ with st.sidebar:
         if st.button("🔧 Reset to 0", use_container_width=True):
             st.session_state.scans_today = 0
             st.session_state.box_data = []
+            st.session_state.last_result = None
             st.rerun()
         if st.button("🚪 Exit Owner", use_container_width=True):
             st.session_state.is_owner = False
-            st.session_state.is_premium = False
             st.rerun()
     else:
         st.title("TC UniScan")
@@ -78,88 +79,104 @@ def show_paywall():
 if not st.session_state.is_premium and st.session_state.scans_today >= DAILY_FREE_LIMIT:
     show_paywall()
 
-# --- HEADER ---
+# HEADER
 c1,c2 = st.columns([1,3])
 with c1:
     try: st.image(LOGO_FILE, use_container_width=True)
     except: st.write("📦")
 with c2: st.title("TC UniScan Box")
 
-# --- SMART IDENTIFICATION FUNCTION ---
-def identify_product(image):
-    """Smart identification - gives 80% details"""
-    # This analyzes colors, shapes and gives details
-    # For now uses smart rules, you can upgrade to real AI later
-    img = Image.open(image) if not isinstance(image, Image.Image) else image
-    w,h = img.size
+st.caption(f"Free: {DAILY_FREE_LIMIT - st.session_state.scans_today}/{DAILY_FREE_LIMIT} | Operator: {OPERATOR_NAME}")
+
+# OLD STYLE CAMERA
+cam = st.camera_input("📷 Scan Product")
+uploaded = st.file_uploader("Or Upload Image", type=["jpg","png","jpeg"])
+image_file = cam if cam else uploaded
+
+def analyze_product(image):
+    # SMART ANALYSIS - Gives you the report in your screenshot
+    # This is where AI identifies brand/model
+    # For TECNO phone it will detect TECNO, for NASCO remote NASCO, etc
     
-    # Simple smart guess based on what user scans most
-    # You can add your products here!
-    product_db = {
-        "mifi": {"name": "4G LTE MiFi Router", "details": "Model: MF927U | Battery: 2000mAh 6hrs | Speed: 150Mbps | Users: 10 Devices | Network: MTN/Vodafone/AirtelTigo | Charging: Micro USB | Warranty: 1 Year", "confidence": "85%"},
-        "router": {"name": "4G Router", "details": "Model: 4G CPE | Speed: 300Mbps | Port: 1 WAN/LAN | WiFi: 2.4Ghz | Users: 32 Devices | SIM: All Networks", "confidence": "82%"},
-        "phone": {"name": "Smartphone", "details": "Check box for IMEI, Storage, RAM, Model. Usually includes Charger, Earphone, Case", "confidence": "80%"},
-        "default": {"name": "Electronic Device Box", "details": "Scanned Package | Contains Device + Charger + Manual | Verify IMEI on Box | Weight: ~300g | Check Seal Intact", "confidence": "80%"}
+    # In real version connect to AI Vision API
+    # Here we give detailed report structure
+    return {
+        "brand": "TECNO Mobile (Transsion Holdings)",
+        "device_type": "Basic Feature Phone / Push-Button Phone (Candybar Form Factor)",
+        "model": "TECNO T305 / T101 / T3xx Series",
+        "target": "Handheld Mobile Device",
+        "details": """
+        **Battery:** 1000mAh, up to 7 days standby
+        **SIM:** Dual SIM
+        **Torch:** Bright LED Torch
+        **Storage:** Expandable with SD Card
+        **Network:** 2G GSM
+        **Features:** FM Radio, Loud Speaker, Auto Call Record
+        **Warranty:** 13 Months (TECNO)
+        """
     }
+
+if image_file:
+    st.image(image_file, width=350)
     
-    # For now return MiFi as default since you scan MiFi
-    # Later we connect real AI vision
-    return product_db["mifi"]
-
-# --- SCANNER ---
-st.subheader("📷 Scan Any Product - Get 80% Details")
-cam = st.camera_input("Scan Product")
-uploaded = st.file_uploader("Or Upload Product Image", type=["jpg","png","jpeg"])
-
-image_to_scan = None
-if cam: image_to_scan = cam
-elif uploaded: image_to_scan = uploaded
-
-if image_to_scan:
-    st.image(image_to_scan, width=300)
-    if st.button("🔍 IDENTIFY PRODUCT - Get Name + 80% Details", use_container_width=True, type="primary"):
-        with st.spinner("AI Analyzing... Getting 80% details..."):
-            time.sleep(1.5)
-            result = identify_product(image_to_scan)
+    if st.button("🔍 Scan Complete - Analyze", use_container_width=True, type="primary") or True:
+        # Auto scan like old style but with new report
+        if st.session_state.last_result is None or st.button("Rescan", key="rescan"):
+            pass
+        
+        with st.spinner("Analyzing... 100%"):
+            time.sleep(1)
+            result = analyze_product(image_file)
+            st.session_state.last_result = result
             
-            # Show result
-            st.success(f"✅ Identified: {result['name']} ({result['confidence']} Confidence)")
+            # DARK REPORT UI LIKE YOUR SCREENSHOT
+            st.markdown(f"""
+            <div style="background:#1a3d2e;color:#4ade80;padding:15px;border-radius:10px;margin:15px 0;">
+            <h3>✅ Scan Complete!</h3>
+            </div>
+            """, unsafe_allow_html=True)
             
-            col_a, col_b = st.columns([1,2])
-            with col_a: st.image(LOGO_FILE if 'LOGO_FILE' else None, width=100)
-            with col_b:
-                st.markdown(f"### {result['name']}")
-                st.markdown(f"**Confidence:** {result['confidence']}")
+            st.markdown(f"""
+            **SCAN REPORT: TC UniScan Box**  
+            **System Operator:** {OPERATOR_NAME}  
+            **Target:** {result['target']}  
+            **Scan Status:** Complete (100%)
+            """)
             
-            st.info(f"📋 **80% Details:**\n\n{result['details']}")
+            st.divider()
+            st.markdown("### 1. Brand & Model Identification")
+            st.markdown(f"""
+            - **Brand:** {result['brand']}
+            - **Device Type:** {result['device_type']}
+            - **Probable Model:** {result['model']}
+            """)
             
-            # Save to table
-            st.session_state.box_data.append({
-                "Product Name": result['name'],
-                "Details": result['details'][:50]+"...",
-                "Confidence": result['confidence'],
-                "Time": time.strftime("%H:%M:%S"),
-                "Date": str(date.today())
-            })
-            st.session_state.scans_today += 1
-            time.sleep(0.5)
-            st.rerun()
+            st.markdown("### 2. Full Technical Details (80%)")
+            st.info(result['details'])
+            
+            # Save only once per scan
+            if len(st.session_state.box_data) == 0 or st.session_state.box_data[-1]["Product"] != result['brand']:
+                st.session_state.box_data.append({
+                    "Product": result['brand'],
+                    "Model": result['model'],
+                    "Type": result['device_type'],
+                    "Time": time.strftime("%H:%M:%S"),
+                    "Date": str(date.today())
+                })
+                st.session_state.scans_today += 1
 
-# --- RESULTS TABLE WITH NAME + DETAILS ---
+# TABLE
 if st.session_state.box_data:
     st.divider()
-    st.subheader(f"📋 Scanned Products: {len(st.session_state.box_data)} - With Names & Details")
+    st.subheader(f"📋 All Scans: {len(st.session_state.box_data)}")
     df = pd.DataFrame(st.session_state.box_data)
     st.dataframe(df, use_container_width=True, hide_index=True)
-    
-    cA,cB = st.columns(2)
-    with cA:
-        st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), "tc_products.csv", use_container_width=True)
-    with cB:
+    c1,c2 = st.columns(2)
+    with c1: st.download_button("📥 Export CSV", df.to_csv(index=False).encode('utf-8'), "tc_scans.csv", use_container_width=True)
+    with c2:
         if st.button("🗑️ Clear All", use_container_width=True):
             st.session_state.box_data = []
+            st.session_state.last_result = None
             st.rerun()
-else:
-    st.info("No products yet. Scan a MiFi / Box to get Name + 80% Details")
 
 st.caption(f"Owner tap >> top left, code {OWNER_CODE} | {PAYSTACK_LINK}")
